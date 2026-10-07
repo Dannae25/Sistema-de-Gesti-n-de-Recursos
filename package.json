@@ -19,7 +19,7 @@
     }
   },
   "packageManager": "pnpm@11.24.0",
-  "type": "module",
+  "type": "commonjs",
   "dependencies": {
     "bcryptjs": "^3.0.3",
     "cors": "^2.8.6",
