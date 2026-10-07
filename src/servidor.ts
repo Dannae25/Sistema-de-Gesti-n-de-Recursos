@@ -1,12 +1,14 @@
 import 'dotenv/config';
 import express, { Request, Response } from 'express';
 import cors from 'cors';
+import { rutasAuth } from './rutas/autenticacion';
 import { pool, inicializarBD } from './conexionBD';
 
 const app = express();
 
 app.use(cors());
 app.use(express.json());
+app.use('/auth', rutasAuth);
 
 // Ruta de prueba
 app.get('/', (req: Request, res: Response) => {
