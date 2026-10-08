@@ -4,6 +4,8 @@ import cors from 'cors';
 import { rutasAuth } from './rutas/autenticacion';
 import { pool, inicializarBD } from './conexionBD';
 import { rutasRecursos } from './rutas/recursos';
+import { rutasFavoritos } from './rutas/favoritos';
+import { rutasCalificaciones } from './rutas/calificaciones';
 
 const app = express();
 
@@ -11,6 +13,8 @@ app.use(cors());
 app.use(express.json());
 app.use('/auth', rutasAuth);
 app.use('/recursos', rutasRecursos);
+app.use('/favoritos', rutasFavoritos);
+app.use('/calificaciones', rutasCalificaciones);
 
 // Ruta de prueba
 app.get('/', (req: Request, res: Response) => {
