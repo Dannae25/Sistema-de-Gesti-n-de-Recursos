@@ -48,3 +48,16 @@ export function soloDocente(
   }
   next();
 }
+
+// Guardia 3: solo deja pasar a estudiantes
+export function soloEstudiante(
+  req: SolicitudAutenticada,
+  res: Response,
+  next: NextFunction
+): void {
+  if (req.usuario?.rol !== 'estudiante') {
+    res.status(403).json({ mensaje: 'Solo los estudiantes pueden hacer esto' });
+    return;
+  }
+  next();
+}
