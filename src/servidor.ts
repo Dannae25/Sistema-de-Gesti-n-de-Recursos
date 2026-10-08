@@ -3,12 +3,14 @@ import express, { Request, Response } from 'express';
 import cors from 'cors';
 import { rutasAuth } from './rutas/autenticacion';
 import { pool, inicializarBD } from './conexionBD';
+import { rutasRecursos } from './rutas/recursos';
 
 const app = express();
 
 app.use(cors());
 app.use(express.json());
 app.use('/auth', rutasAuth);
+app.use('/recursos', rutasRecursos);
 
 // Ruta de prueba
 app.get('/', (req: Request, res: Response) => {
