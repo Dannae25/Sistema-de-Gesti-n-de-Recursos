@@ -7,7 +7,7 @@ export const rutasRecursos = Router();
 // Todas las rutas de este archivo exigen haber iniciado sesión con el token del middleware
 rutasRecursos.use(verificarToken);
 
-const TIPOS_VALIDOS = ['libro', 'video', 'artículo', 'tutorial', 'curso'];
+const TIPOS_VALIDOS = ['libro', 'video', 'artículo', 'tutorial'];
 
 // Consulta SQL trae el recurso con su promedio de calificaciones
 const CONSULTA_BASE = `
