@@ -6,6 +6,18 @@ export const rutasCalificaciones = Router();
 
 rutasCalificaciones.use(verificarToken, soloEstudiante);
 
+// Calcula el promedio y el total de votos actualizados de un recurso
+async function obtenerPromedio(recursoId: number) {
+  const resultado = await pool.query(
+    `SELECT COALESCE(ROUND(AVG(puntuacion)::numeric, 1), 0)::float AS promedio,
+            COUNT(*)::int AS total_votos
+     FROM calificaciones
+     WHERE recurso_id = $1`,
+    [recursoId]
+  );
+  return resultado.rows[0] as { promedio: number; total_votos: number };
+}
+
 // ---------- MIS CALIFICACIONES ----------
 rutasCalificaciones.get('/mias', async (req: SolicitudAutenticada, res: Response) => {
   try {
@@ -20,7 +32,7 @@ rutasCalificaciones.get('/mias', async (req: SolicitudAutenticada, res: Response
   }
 });
 
-// ---------- CALIFICAR ----------
+// ---------- CALIFICAR Y QUITAR MI CALIFICACIÓN ----------
 rutasCalificaciones.put('/:recursoId', async (req: SolicitudAutenticada, res: Response) => {
   const recursoId = Number(req.params.recursoId);
   const puntuacion = Number(req.body.puntuacion);
@@ -50,24 +62,46 @@ rutasCalificaciones.put('/:recursoId', async (req: SolicitudAutenticada, res: Re
       [req.usuario!.id, recursoId, puntuacion]
     );
 
-    // Luego de guardar la calificación, calculamos el promedio y total de votos
-    const promedio = await pool.query(
-      `SELECT COALESCE(ROUND(AVG(puntuacion)::numeric, 1), 0)::float AS promedio,
-              COUNT(*)::int AS total_votos
-       FROM calificaciones
-       WHERE recurso_id = $1`,
-      [recursoId]
-    );
-
+    const datos = await obtenerPromedio(recursoId);
     res.json({
       mensaje: 'Calificación guardada',
       recursoId,
       miPuntuacion: puntuacion,
-      promedio: promedio.rows[0].promedio,
-      totalVotos: promedio.rows[0].total_votos,
+      promedio: datos.promedio,
+      totalVotos: datos.total_votos,
     });
   } catch (error) {
     console.error(error);
     res.status(500).json({ mensaje: 'Error al guardar la calificación' });
+  }
+});
+
+// ---------- QUITAR MI CALIFICACIÓN ----------
+rutasCalificaciones.delete('/:recursoId', async (req: SolicitudAutenticada, res: Response) => {
+  const recursoId = Number(req.params.recursoId);
+
+  if (!Number.isInteger(recursoId)) {
+    res.status(400).json({ mensaje: 'El id del recurso debe ser un número' });
+    return;
+  }
+
+  try {
+    // Solo borra la calificación de este usuario, nunca la de otros
+    await pool.query('DELETE FROM calificaciones WHERE usuario_id = $1 AND recurso_id = $2', [
+      req.usuario!.id,
+      recursoId,
+    ]);
+
+    const datos = await obtenerPromedio(recursoId);
+    res.json({
+      mensaje: 'Calificación eliminada',
+      recursoId,
+      miPuntuacion: 0,
+      promedio: datos.promedio,
+      totalVotos: datos.total_votos,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ mensaje: 'Error al eliminar la calificación' });
   }
 });
